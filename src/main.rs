@@ -1,3 +1,9 @@
+mod tree;
+mod node;
+
+use tree::Tree;
+
 fn main() {
-    println!("Hello, world!");
+    let order = 4;
+    let tree: Tree<i32, String> = Tree::new(order);
 }
