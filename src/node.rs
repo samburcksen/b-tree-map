@@ -1,16 +1,16 @@
-use core::panic;
+use std::{fmt::Display, usize};
 
 use crate::tree::Comparable;
 
 #[derive(Clone)]
-pub struct Node<T: Comparable> {
-    order: usize,
-    keys: Vec<T>,
-    children: Vec<Node<T>>
+pub(crate) struct Node<T: Comparable> {
+    pub(crate) order: usize,
+    pub(crate) keys: Vec<T>,
+    pub(crate) children: Vec<Node<T>>
 }
 
 impl<T: Comparable> Node<T> {
-    pub fn new(order:usize) -> Self {
+    pub(crate) fn new(order:usize) -> Self {
         Self {
             order,
             keys: Vec::new(),
@@ -18,7 +18,7 @@ impl<T: Comparable> Node<T> {
         }
     }
 
-    pub fn insert(&mut self, key: T) {
+    pub(crate) fn insert(&mut self, key: T) {
         let key_pos = self.find_pos(key);
 
         // Key is already in Tree
@@ -31,16 +31,16 @@ impl<T: Comparable> Node<T> {
             return;
         }
 
-        let child = self.child(key_pos.0).unwrap();
+        let child = &self.children[key_pos.0];
 
         // If child is full, split it
         if child.is_full() {
             // Get middle key of child
-            let middle_key = *child.keys().get(self.order/2 - 1).unwrap();
+            let middle_key = child.keys[self.order/2 - 1];
             let middle_key_pos = self.find_pos(middle_key).0;
 
             // Split the child and remove the middle key
-            let child = self.child_mut(key_pos.0).unwrap();
+            let child = &mut self.children[key_pos.0];
             let new_right_child = child.split();
 
             // Insert middle key into self
@@ -48,28 +48,162 @@ impl<T: Comparable> Node<T> {
             self.children.insert(middle_key_pos + 1, new_right_child);
         } 
         
-        let child = self.child_mut(self.find_pos(key).0).unwrap();
-        child.insert(key);
-
+        let key_pos = self.find_pos(key).0;
+        self.children[key_pos].insert(key);
     }
 
-    pub fn split(&mut self) -> Node<T> {
+    pub(crate) fn split(&mut self) -> Node<T> {
         let mut right_sibling = Node::new(self.order);
 
         // Split keys
-        right_sibling.keys_mut().append(&mut self.keys[self.order/2..].into());
+        right_sibling.keys.extend_from_slice(&self.keys[self.order/2..]);
         self.keys = self.keys[..self.order/2 - 1].into();
 
         // If self is no leaf, split children
         if !self.is_leaf() {
-            right_sibling.children_mut().append(&mut self.children[self.order/2..].into());
+            right_sibling.children.append(&mut self.children[self.order/2..].into());
             self.children = self.children[..self.order/2].into();
         }
 
         right_sibling
     }
 
-    pub fn find_pos(&self, key: T) -> (usize, bool) {
+    pub(crate) fn remove(&mut self, key: T) {
+        let key_pos = self.find_pos(key);
+
+        // Key is in node
+        if key_pos.1 {
+            if self.is_leaf() {
+                self.keys.remove(key_pos.0);
+            } else {
+                self.remove_from_non_leaf(key);
+            }
+
+        // Key is not in node
+        } else {
+            if self.is_leaf() {
+                return;
+            }
+
+            // TODO: 
+            let mut flag = false;
+            
+            // Child where key is located has minimal amount of keys
+            if self.children[key_pos.0].keys.len() < (self.order / 2) {
+                flag = self.fill_child(key_pos.0);
+            }
+
+            // Remove
+            // TODO check if merge happended with left child
+            if flag {
+                self.children[key_pos.0 - 1].remove(key);
+            } else {
+                self.children[key_pos.0].remove(key);
+            }
+            
+        }
+
+
+    }
+
+    fn remove_from_non_leaf(&mut self, key: T) {
+        let key_pos = self.find_pos(key).0;
+        let min_keys = self.order / 2 - 1;
+
+        // Preceeding child has enough keys
+        if self.children[key_pos].keys.len() > min_keys {
+            // Get preceeding key from left child and remove it recursively
+            let left_child = &mut self.children[key_pos];
+            let preceeding_key = left_child.keys[left_child.keys.len() - 1];
+            left_child.remove(preceeding_key);
+
+            // Replace key with preceeding key from left child
+            self.keys[key_pos] = preceeding_key;
+
+        // Succeeding child has enough keys
+        } else if self.children[key_pos + 1].keys.len() > min_keys {
+            // Get succeeding key from right child and remove it recursively
+            let right_child = &mut self.children[key_pos + 1];
+            let preceeding_key = right_child.keys[0];
+            right_child.remove(preceeding_key);
+
+            // Replace key with preceeding key from left child
+            self.keys[key_pos] = preceeding_key;
+
+        // Both children have minimun amount of keys
+        } else {
+            self.merge_children(key_pos);
+            self.children[key_pos].remove(key);
+        }
+
+    }
+
+    fn fill_child(&mut self, pos: usize) -> bool {
+        let min_keys = self.order / 2 - 1;
+        let last_child = self.keys.len() == pos;
+
+        // Left sibling exists and has enough keys
+        if pos != 0 && self.children[pos - 1].keys.len() > min_keys {
+            // Get right-most key and child from left sibling
+            let left_sibling = &mut self.children[pos - 1];
+            let left_sibling_key = left_sibling.keys.remove(left_sibling.keys.len() - 1);
+            if !left_sibling.is_leaf() {
+                let left_sibling_child = left_sibling.children.remove(left_sibling.children.len() - 1);
+                self.children[pos].children.insert(0, left_sibling_child);
+            }
+
+            // Insert left_key into self and overwritten own key into child
+            self.children[pos].keys.insert(0, self.keys[pos - 1]);
+            self.keys[pos - 1] = left_sibling_key;
+
+        // Right sibling exists and has enough keys
+        } else if pos != self.children.len() - 1 && self.children[pos + 1].keys.len() > min_keys {
+            // Get left-most key and child from right sibling
+            let right_sibling = &mut self.children[pos + 1];
+            let right_sibling_key = right_sibling.keys.remove(0);
+            if !right_sibling.is_leaf() {
+                let right_sibling_child = right_sibling.children.remove(0);
+                self.children[pos].children.push(right_sibling_child);
+            }
+            
+            self.children[pos].keys.push(self.keys[pos]);
+            self.keys[pos] = right_sibling_key;
+
+        // Merge the child with a sibling
+        } else {
+            if last_child {
+                // If child is right most child, merge it's left sibling instead
+                self.merge_children(pos - 1);
+                return true;
+            } else {
+                self.merge_children(pos);
+            }
+        }
+
+        if self.keys.len() == self.children.len() {
+            panic!();
+        }
+
+        false
+    }
+
+    fn merge_children(&mut self, left_child: usize) {
+        // Remove key from self
+        let key = self.keys.remove(left_child);
+
+        // Delete right child
+        let mut right_child =  self.children.remove(left_child + 1);
+
+        // Insert key into left child
+        let left_child = &mut self.children[left_child];
+        left_child.keys.push(key);
+
+        // Move right child keys and children into left child
+        left_child.keys.append(&mut right_child.keys);
+        left_child.children.append(&mut right_child.children);
+    }
+
+    pub(crate) fn find_pos(&self, key: T) -> (usize, bool) {
         for (index, node_key) in self.keys.iter().enumerate() {
             if key < *node_key {
                 return (index, false);
@@ -82,45 +216,27 @@ impl<T: Comparable> Node<T> {
         (self.keys.len(), false)
     }
 
-    pub fn keys(&self) -> &Vec<T> {
-        &self.keys
-    }
-
-    pub fn keys_mut(&mut self) -> &mut Vec<T> {
-        &mut self.keys
-    }
-
-    pub fn children_mut(&mut self) -> &mut Vec<Node<T>> {
-        &mut self.children
-    } 
-
-    pub fn child(&self, index: usize) -> Option<&Node<T>> {
-        self.children.get(index)
-    }
-
-    pub fn child_mut(&mut self, index: usize) -> Option<&mut Node<T>> {
-        self.children.get_mut(index)
-    }
-
-    pub fn is_leaf(&self) -> bool {
+    pub(crate) fn is_leaf(&self) -> bool {
         self.children.is_empty()
     }
 
-    pub fn is_full(&self) -> bool {
+    pub(crate) fn is_full(&self) -> bool {
         self.keys.len() >= (self.order - 1)
     }
+}
 
-    pub fn print(&self) {
+impl<T: Display + Comparable> Display for Node<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.is_leaf() {
             for key in &self.keys {
-                print!("{}", key);
-            }
+                write!(f, "{}", key)?;
+            } 
+            Ok(())
         } else {
-            for (index, key) in self.keys.iter().enumerate() {
-                self.children[index].print();
-                print!("{}", key);
+            for (child, key) in self.children.iter().zip(self.keys.iter()) {
+                write!(f, "{}{}", child, key)?;
             }
-            self.children[self.keys.len()].print();
+            write!(f, "{}", self.children[self.keys.len()])
         }
     }
 }

@@ -2,10 +2,10 @@ use std::fmt::Display;
 
 use crate::node::Node;
 
-pub trait Comparable: PartialEq + Eq + PartialOrd + Ord + Display + Copy {}
+pub trait Comparable: Ord + Copy {}
 
 impl<C> Comparable for C 
-    where C: PartialEq + Eq + PartialOrd + Ord + Display+ Copy 
+    where C: Ord + Copy 
 {}
 
 
@@ -28,7 +28,7 @@ impl<T: Comparable> Tree<T> {
             let left_child = &mut self.root_node;
 
             // Extrace the old roots middle key and split it
-            let middle_key = left_child.keys()[self.order/2 - 1];
+            let middle_key = left_child.keys[self.order/2 - 1];
             let mut right_child =  left_child.split();
 
             // Insert key into split old root
@@ -42,9 +42,9 @@ impl<T: Comparable> Tree<T> {
             let left_child = std::mem::replace( left_child, Node::new(self.order));
 
             // Insert split old root and its middle key into new root
-            self.root_node.children_mut().push(left_child);
-            self.root_node.children_mut().push(right_child);
-            self.root_node.keys_mut().push(middle_key);
+            self.root_node.children.push(left_child);
+            self.root_node.children.push(right_child);
+            self.root_node.keys.push(middle_key);
         } else {
             // Insert new key
             self.root_node.insert(key);
@@ -53,7 +53,11 @@ impl<T: Comparable> Tree<T> {
 
 
     pub fn remove(&mut self, key: T) {
+        if self.root_node.keys.len() == 0 {
+            return
+        } 
 
+        self.root_node.remove(key);
     }
 
     pub fn search(&self, key:  T) -> Option<&Node<T>> {
@@ -64,7 +68,7 @@ impl<T: Comparable> Tree<T> {
 
             // Key is found
             if pos.1 {
-                return node.into();
+                return Some(node);
             } 
 
             // Node is leaf and key was not found in node keys
@@ -72,13 +76,13 @@ impl<T: Comparable> Tree<T> {
                 return None;
             }  
 
-            node = node.child(pos.0).unwrap();
+            node = &node.children[pos.0];
         }
-    }
+    }   
+}
 
-    pub fn print(&self) {
-        self.root_node.print();
-        println!("");
+impl<T: Display + Comparable> Display for Tree<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.root_node)
     }
-    
 }
