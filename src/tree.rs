@@ -8,12 +8,12 @@ impl<C> Comparable for C
     where C: Ord + Copy 
 {}
 
-pub struct Tree<T: Comparable> {
+pub struct Tree<T: Comparable, U> {
     order: usize,
     root_node: Node<T>
 }
 
-impl<T: Comparable> Tree<T> {
+impl<T: Comparable, U> Tree<T, U> {
     pub fn new(order: usize) -> Self {
         Self {
             order, 
@@ -57,6 +57,11 @@ impl<T: Comparable> Tree<T> {
         } 
 
         self.root_node.remove(key);
+
+        // Check if root node still has enough keys
+        if self.root_node.keys.is_empty() & !self.root_node.is_leaf() {
+            self.root_node = self.root_node.children.remove(0);
+        }
     }
 
     pub fn search(&self, key:  T) -> Option<&Node<T>> {
@@ -80,7 +85,7 @@ impl<T: Comparable> Tree<T> {
     }   
 }
 
-impl<T: Display + Comparable> Display for Tree<T> {
+impl<T: Display + Comparable> Display for Tree<T, U> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.root_node)
     }

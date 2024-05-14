@@ -170,15 +170,15 @@ impl<T: Comparable> Node<T> {
         }
     }
 
-    fn merge_children(&mut self, left_child: usize) {
+    fn merge_children(&mut self, left_child_pos: usize) {
         // Remove key from self
-        let key = self.keys.remove(left_child);
+        let key = self.keys.remove(left_child_pos);
 
         // Delete right child
-        let mut right_child =  self.children.remove(left_child + 1);
+        let mut right_child =  self.children.remove(left_child_pos + 1);
 
         // Insert key into left child
-        let left_child = &mut self.children[left_child];
+        let left_child = &mut self.children[left_child_pos];
         left_child.keys.push(key);
 
         // Move right child keys and children into left child

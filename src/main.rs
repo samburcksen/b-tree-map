@@ -4,7 +4,7 @@ mod node;
 use tree::Tree;
 
 fn main() {
-    let order = 4;
+    let order = 3;
     let mut tree: Tree<i32> = Tree::new(order);
 
     tree.insert(5);
