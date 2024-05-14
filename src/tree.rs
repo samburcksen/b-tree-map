@@ -8,7 +8,6 @@ impl<C> Comparable for C
     where C: Ord + Copy 
 {}
 
-
 pub struct Tree<T: Comparable> {
     order: usize,
     root_node: Node<T>
@@ -53,7 +52,7 @@ impl<T: Comparable> Tree<T> {
 
 
     pub fn remove(&mut self, key: T) {
-        if self.root_node.keys.len() == 0 {
+        if self.root_node.keys.is_empty() {
             return
         } 
 

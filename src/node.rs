@@ -1,4 +1,4 @@
-use std::{fmt::Display, usize};
+use std::{cmp::Ordering, fmt::Display, usize};
 
 use crate::tree::Comparable;
 
@@ -69,7 +69,7 @@ impl<T: Comparable> Node<T> {
     }
 
     pub(crate) fn remove(&mut self, key: T) {
-        let key_pos = self.find_pos(key);
+        let mut key_pos = self.find_pos(key);
 
         // Key is in node
         if key_pos.1 {
@@ -84,26 +84,17 @@ impl<T: Comparable> Node<T> {
             if self.is_leaf() {
                 return;
             }
-
-            // TODO: 
-            let mut flag = false;
             
             // Child where key is located has minimal amount of keys
             if self.children[key_pos.0].keys.len() < (self.order / 2) {
-                flag = self.fill_child(key_pos.0);
+                self.fill_child(key_pos.0);
+
+                // Get new key_pos in case child was merged with left node
+                key_pos = self.find_pos(key);
             }
 
-            // Remove
-            // TODO check if merge happended with left child
-            if flag {
-                self.children[key_pos.0 - 1].remove(key);
-            } else {
-                self.children[key_pos.0].remove(key);
-            }
-            
+            self.children[key_pos.0].remove(key);
         }
-
-
     }
 
     fn remove_from_non_leaf(&mut self, key: T) {
@@ -138,7 +129,7 @@ impl<T: Comparable> Node<T> {
 
     }
 
-    fn fill_child(&mut self, pos: usize) -> bool {
+    fn fill_child(&mut self, pos: usize) {
         let min_keys = self.order / 2 - 1;
         let last_child = self.keys.len() == pos;
 
@@ -169,22 +160,14 @@ impl<T: Comparable> Node<T> {
             self.children[pos].keys.push(self.keys[pos]);
             self.keys[pos] = right_sibling_key;
 
-        // Merge the child with a sibling
+        // If child is right most child, merge with it's left sibling instead
+        } else if last_child{            
+            self.merge_children(pos - 1);
+
+        // Otherwise merge the child with the right sibling
         } else {
-            if last_child {
-                // If child is right most child, merge it's left sibling instead
-                self.merge_children(pos - 1);
-                return true;
-            } else {
-                self.merge_children(pos);
-            }
+            self.merge_children(pos);
         }
-
-        if self.keys.len() == self.children.len() {
-            panic!();
-        }
-
-        false
     }
 
     fn merge_children(&mut self, left_child: usize) {
@@ -205,10 +188,10 @@ impl<T: Comparable> Node<T> {
 
     pub(crate) fn find_pos(&self, key: T) -> (usize, bool) {
         for (index, node_key) in self.keys.iter().enumerate() {
-            if key < *node_key {
-                return (index, false);
-            } else if key == *node_key {
-                return (index, true);
+            match key.cmp(node_key) {
+                Ordering::Less => return (index, false),
+                Ordering::Equal => return (index, true),
+                Ordering::Greater => continue
             }
         }
 

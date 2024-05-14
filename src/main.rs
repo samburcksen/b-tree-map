@@ -49,4 +49,11 @@ fn main() {
     tree.remove(3);
     println!("{tree}");
 
+    if tree.search(200).is_none() {
+        panic!();
+    }
+
+    if tree.search(-1).is_some() {
+        panic!();
+    }
 }
