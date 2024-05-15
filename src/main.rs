@@ -5,55 +5,37 @@ use tree::Tree;
 
 fn main() {
     let order = 3;
-    let mut tree: Tree<i32> = Tree::new(order);
+    let mut tree: Tree<i32, String> = Tree::new(order);
 
-    tree.insert(5);
+    tree.insert(5, "Hallo".to_string());
     println!("{}", tree);
-    tree.insert(3);
-    println!("{tree}");
-    tree.insert(8);
-    println!("{tree}");
-    tree.insert(9);
-    println!("{tree}");
-    tree.insert(1);
-    println!("{tree}");
-    tree.insert(200);
-    println!("{tree}");
-    tree.insert(100);
-    println!("{tree}");
-    tree.insert(300);
-    println!("{tree}");
-    tree.insert(400);
-    println!("{tree}");
-    tree.insert(500);
-    println!("{tree}");
-    tree.insert(600);
-    println!("{tree}");
-    tree.insert(700);
-    println!("{tree}");
-    tree.insert(800);
-    println!("{tree}");
-    tree.insert(900);    
-    println!("{tree}");
-    tree.insert(0);
-    println!("{tree}");
+    tree.insert(10, "Hallo".to_string());
+    println!("{}", tree);
+    tree.insert(100, "Hallo".to_string());
+    println!("{}", tree);
+    tree.insert(4, "Hallo".to_string());
+    println!("{}", tree);
+    tree.insert(0, "Hallo".to_string());
+    println!("{}", tree);
+    tree.insert(1000, "Hallo".to_string());
+    println!("{}", tree);
+    tree.insert(2, "Hallo".to_string());
+    println!("{}", tree);
+    tree.insert(-5, "Hallo".to_string());
+    println!("{}", tree);
+    
+    tree.remove(&5);
+    println!("{}", tree);
 
-    tree.remove(500);
-    println!("{tree}");
-    tree.remove(900);
-    println!("{tree}");
-    tree.remove(100);
-    println!("{tree}");
-    tree.remove(8);
-    println!("{tree}");
-    tree.remove(3);
-    println!("{tree}");
+    tree.remove(&10);
+    println!("{}", tree);
 
-    if tree.search(200).is_none() {
-        panic!();
-    }
+    tree.remove(&2);
+    println!("{}", tree);
 
-    if tree.search(-1).is_some() {
-        panic!();
-    }
+    tree.remove(&1000);
+    println!("{}", tree);
+
+    tree.remove(&-5);
+    println!("{}", tree);
 }
