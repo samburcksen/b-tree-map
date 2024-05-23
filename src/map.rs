@@ -19,14 +19,12 @@ const DEFAULT_B: usize = 6;
 /// By default, B is set to 6, but a cusomzied B can be
 /// specified upon creation.
 ///
-/// The key used for this `BTreeMap` need to implement the [`Ord`] trait.
-///
 /// [B-Tree]: https://en.wikipedia.org/wiki/B-tree
 ///
 /// # Examples
 ///
 /// ```
-/// use b-tree::BTreeMap;
+/// use b_tree::BTreeMap;
 ///
 /// let mut user_names = BTreeMap::new();
 ///    
@@ -37,15 +35,13 @@ const DEFAULT_B: usize = 6;
 ///    
 /// // Remove users
 /// assert_eq!(user_names.remove(&5), Some("Stefanie"));
-/// assert_eq!(user_names.remove(&2), None);
 ///
 /// // Get users
 /// assert_eq!(user_names.get(&1), Some(&"John"));
-/// assert_eq!(user_names.get(&2), None);
 /// ```
 pub struct BTreeMap<K, V> {
-    pub(super) min_childs: usize,
-    pub(super) root_node: Node<K, V>,
+    pub(crate) min_childs: usize,
+    pub(crate) root_node: Node<K, V>,
 }
 
 impl<K, V> BTreeMap<K, V> {
@@ -61,7 +57,7 @@ impl<K, V> BTreeMap<K, V> {
     /// Error is returned.
     pub fn with_order(b: usize) -> Result<Self, &'static str> {
         if b < 2 {
-            return Err("min_childs needs to be larger than 2!");
+            return Err("B needs to be larger than 2!");
         }
 
         Ok(Self {
@@ -110,7 +106,7 @@ impl<K, V> BTreeMap<K, V> {
         removed_value
     }
 
-    /// Rerurns a reference to a value for the given key.
+    /// Returns a reference to a value for a given key.
     ///
     /// If the key is not present in the Map, returns `None`.
     pub fn get(&self, key: &K) -> Option<&V>

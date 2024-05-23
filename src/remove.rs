@@ -11,7 +11,7 @@ where
         if key_pos.1 {
             if self.is_leaf() {
                 // Remove element and return the removed value
-                Some(*self.elements.remove(key_pos.0).value)
+                Some(self.elements.remove(key_pos.0).value)
             } else {
                 self.remove_from_non_leaf(key)
             }

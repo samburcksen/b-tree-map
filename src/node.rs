@@ -3,14 +3,14 @@ use std::{cmp::Ordering, fmt::Display, usize};
 #[derive(Clone)]
 pub(crate) struct KeyValuePair<K, V> {
     pub(crate) key: K,
-    pub(crate) value: Box<V>,
+    pub(crate) value: V,
 }
 
 impl<K, V> KeyValuePair<K, V> {
     pub(crate) fn new(key: K, value: V) -> Self {
         Self {
             key,
-            value: value.into(),
+            value,
         }
     }
 }
