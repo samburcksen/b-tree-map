@@ -43,8 +43,7 @@ where
         }
 
         if self.is_leaf() {
-            self.elements
-                .insert(key_pos.0, KeyValuePair::new(key, value));
+            self.elements.insert(key_pos.0, KeyValuePair { key, value });
             return None;
         }
 

@@ -6,15 +6,6 @@ pub(crate) struct KeyValuePair<K, V> {
     pub(crate) value: V,
 }
 
-impl<K, V> KeyValuePair<K, V> {
-    pub(crate) fn new(key: K, value: V) -> Self {
-        Self {
-            key,
-            value,
-        }
-    }
-}
-
 #[derive(Clone)]
 pub(crate) struct Node<K, V> {
     pub(crate) min_childs: usize,
