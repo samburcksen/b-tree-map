@@ -1,11 +1,15 @@
-mod tree;
+pub mod map;
 mod node;
+mod insert;
+mod remove;
+mod search;
 
-use tree::Tree;
+use map::BTreeMap;
 
 fn main() {
     let order = 3;
-    let mut tree: Tree<i32, String> = Tree::new(order);
+    let mut tree: BTreeMap<i32, String> = 
+        BTreeMap::with_order(order).unwrap();
 
     tree.insert(5, "Hallo".to_string());
     println!("{}", tree);
@@ -38,4 +42,7 @@ fn main() {
 
     tree.remove(&-5);
     println!("{}", tree);
+
+    assert!(tree.get(&100).is_some());
+    assert!(tree.get(&-5).is_none());
 }
