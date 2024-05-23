@@ -1,6 +1,6 @@
+mod insert;
 pub mod map;
 mod node;
-mod insert;
 mod remove;
 mod search;
 
