@@ -9,22 +9,22 @@ Create a new map by using ``new()``
 ```
 use b_tree::BTreeMap;
 
-let mut b_tree = BTreeMap::new()
+let mut tree = BTreeMap::new();
 ```
 
 Insert key-value pairs using ``insert(key, value)``
 ```
-b_tree.insert(5, "Five");
+tree.insert(5, "Five");
 ```
 
 Retrieve values using ``get(&key)``
 ```
-let value = b_tree.get(&5).unwrap();
+let value = tree.get(&5).unwrap();
 ```
 
 Remove values using ``remove(&key)``
 ```
-let removed_value = b_tree.remove(&5).unwrap();
+let removed_value = tree.remove(&5).unwrap();
 ```
 
 Configure a custom B value using ``with_order(B)``
