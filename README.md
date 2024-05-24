@@ -28,7 +28,7 @@ let removed_value = tree.remove(&5).unwrap();
 ```
 
 Configure a custom B value using ``with_order(B)``
-(It cant be less lower than 3)
+(It can not be lower than 3)
 ```
 let mut custom_b = BTreeMap::with_order(10).unwrap();
 ```
